@@ -1,0 +1,26 @@
+Package: biostats625
+Type: Package
+Title: Linear Regression Analysis and Prediction Toolkit
+Version: 0.1.0
+Authors@R: 
+    person("Xiaoyu", "Lin", email = "xylin@umich.edu", role = c("aut", "cre"))
+Description: Provides a collection of functions for performing, interpreting, and evaluating 
+    ordinary least squares (OLS) linear regression. Includes tools for model fitting 
+    ('linreg_fit'), model interpretation ('linreg_interpret'), exploratory data statistics 
+    ('data_info'), prediction for new observations ('linreg_predict'), and confidence interval 
+    calculation for model parameters ('CI_Calculator'). The package also includes 
+    unit testing, a vignette, and benchmarking to address performance and accuracy.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+Suggests: 
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0),
+    bench,
+    covr
+Config/testthat/edition: 3
+VignetteBuilder: knitr
+Imports: 
+    stats
