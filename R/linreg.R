@@ -77,9 +77,11 @@ linreg_fit <- function(formula, data) {
 linreg_interpret <- function(fit) {
   if (!inherits(fit, "linreg_fit")) stop("fit must be a linreg_fit object")
 
+  # Fetch R-squared and p-value
   r2 <- fit$summary$r.squared
   pval <- fit$summary$p.value
 
+  # Check R_squared
   interpret_r2 <- if (r2 > 0.8) {
     "very strong"
   } else if (r2 > 0.5) {
@@ -90,6 +92,7 @@ linreg_interpret <- function(fit) {
     "very weak"
   }
 
+  # check p-value with 0.05 confidence level
   sig_text <- if (pval < 0.05) "statistically significant" else "not statistically significant"
 
   message <- paste0(
@@ -115,6 +118,7 @@ linreg_interpret <- function(fit) {
 data_info <- function(x) {
   if (!is.numeric(x)) stop("x must be numeric")
 
+  # find the descriptive data of interested variables
   result <- list(
     mean = mean(x, na.rm = TRUE),
     median = median(x, na.rm = TRUE),
