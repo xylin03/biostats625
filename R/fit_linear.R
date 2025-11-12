@@ -30,66 +30,79 @@
 #' model$coefficients
 #' @export
 fit_linear <- function(formula, data) {
-  # Remove missing rows
-  n_before <- nrow(data)
-  data <- na.omit(data)
-  n_after <- nrow(data)
-  n_removed <- n_before - n_after
-  if (n_removed > 0) message(n_removed, " rows removed due to missing values.")
+  # Remove rows with missing values
+  data_complete <- na.omit(data)
+  n_used <- nrow(data_complete)
+  n_removed <- nrow(data) - n_used
 
-  # Create model matrix and response
-  mf <- model.frame(formula, data)
-  y <- model.response(mf)
-  X <- model.matrix(formula, data)
+  # Create model matrix
+  X <- model.matrix(formula, data_complete)
+  y <- model.response(model.frame(formula, data_complete))
 
-  n <- nrow(X)
-  p <- ncol(X)
+  # Fit model using normal equations
+  beta_hat <- solve(t(X) %*% X, t(X) %*% y)
 
-  # Compute coefficients: (X'X)^-1 X'y
-  XtX_inv <- solve(t(X) %*% X)
-  beta <- XtX_inv %*% t(X) %*% y
-  fitted <- X %*% beta
+  # Predicted values and residuals
+  fitted <- X %*% beta_hat
   residuals <- y - fitted
 
-  # Model statistics
+  # Degrees of freedom
+  n <- length(y)
+  p <- ncol(X)
   df_resid <- n - p
-  sse <- sum(residuals^2)
-  sst <- sum((y - mean(y))^2)
-  sigma2 <- sse / df_resid
 
-  # Standard errors
-  se <- sqrt(diag(sigma2 * XtX_inv))
-  t_val <- beta / se
-  p_val <- 2 * pt(-abs(t_val), df_resid)
+  # Estimate sigma^2
+  sigma2 <- sum(residuals^2) / df_resid
 
-  # R^2 and adjusted R^2
-  r2 <- 1 - sse / sst
+  # Variance-covariance matrix and SEs
+  var_beta <- sigma2 * solve(t(X) %*% X)
+  se_beta <- sqrt(diag(var_beta))
+
+  # t-values and p-values
+  t_values <- beta_hat / se_beta
+  p_values <- 2 * pt(-abs(t_values), df = df_resid)
+
+  # R-squared and adjusted R-squared
+  ss_total <- sum((y - mean(y))^2)
+  ss_res <- sum(residuals^2)
+  r2 <- 1 - ss_res / ss_total
   adj_r2 <- 1 - (1 - r2) * ((n - 1) / df_resid)
 
-  # F-statistic
-  msr <- (sst - sse) / (p - 1)
-  mse <- sse / df_resid
+  # F-statistic and p-value
+  msr <- (ss_total - ss_res) / (p - 1)
+  mse <- ss_res / df_resid
   f_stat <- msr / mse
-  f_p <- 1 - pf(f_stat, p - 1, df_resid)
+  f_p <- pf(f_stat, p - 1, df_resid, lower.tail = FALSE)
 
+  # Coefficient table
   coef_df <- data.frame(
-    Estimate = as.vector(beta),
-    Std.Error = se,
-    t.value = as.vector(t_val),
-    p.value = as.vector(p_val),
+    Estimate = as.numeric(beta_hat),
+    Std.Error = se_beta,
+    t.value = as.numeric(t_values),
+    p.value = p_values,
     row.names = colnames(X)
   )
 
-  list(
+  # Create terms object
+  terms_obj <- terms(formula, data = data_complete)
+
+  # Return full structured list
+  model <- list(
+    formula = formula,
+    terms = terms_obj,
     coefficients = coef_df,
     r.squared = r2,
     adj.r.squared = adj_r2,
     f.statistic = f_stat,
     f.p.value = f_p,
     n_removed = n_removed,
-    n_used = n_after,
+    n_used = n_used,
     fitted.values = as.vector(fitted),
     residuals = as.vector(residuals)
   )
+
+  class(model) <- "fit_linear"
+  return(model)
 }
+
 
