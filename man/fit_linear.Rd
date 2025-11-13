@@ -14,10 +14,10 @@ fit_linear(formula, data)
 \value{
 A list containing:
 \item{coefficients}{A data frame with estimates, standard errors, t-values, and p-values.}
-\item{r.squared}{Model R-squared.}
-\item{adj.r.squared}{Adjusted R-squared.}
-\item{f.statistic}{Overall F-statistic for the model.}
-\item{f.p.value}{p-value associated with the F-statistic.}
+\item{r_squared}{Model R-squared.}
+\item{adj_r_squared}{Adjusted R-squared.}
+\item{f_statistic}{Overall F-statistic for the model.}
+\item{f_p.value}{p-value associated with the F-statistic.}
 \item{n_removed}{Number of rows removed due to missing data.}
 \item{n_used}{Number of rows used for fitting.}
 }

@@ -2,52 +2,31 @@
 % Please edit documentation in R/predict_linear.R
 \name{predict_linear}
 \alias{predict_linear}
-\title{Predict values from a fitted linear model}
+\title{Predict from a fitted linear regression model}
 \usage{
-predict_linear(object, newdata = NULL)
+predict_linear(fit, newdata = NULL)
 }
 \arguments{
-\item{object}{A fitted linear model object returned by \code{fit_linear()}.}
+\item{fit}{A fitted model object returned by \code{fit_linear()}.}
 
-\item{newdata}{Optional data frame containing new predictor values for
-which predictions should be generated. If omitted,
-the function returns fitted values from the training data.}
+\item{newdata}{A data frame containing the same predictor variables as used in
+the fitted model. If \code{newdata} is \code{NULL}, predictions for the training data
+(used in fitting) will be returned.}
 }
 \value{
-A numeric vector of predicted values, either:
-\itemize{
-\item In-sample fitted values (if \code{newdata} is \code{NULL})
-\item Out-of-sample predictions (if \code{newdata} is provided)
-}
+A numeric vector of predicted values.
 }
 \description{
-The \code{predict_linear()} function generates predicted values from a model
-fitted using the \code{fit_linear()} function. If no new data are provided,
-it returns the fitted (in-sample) values from the original model. If
-a new data frame is supplied, the function computes predictions for
-those new observations using the model’s coefficients and design matrix.
+The \code{predict_linear()} function generates predictions from a fitted linear
+regression model created by \code{fit_linear()}. It uses the model coefficients
+and the provided new data to compute predicted Y values.
 }
 \details{
-The function constructs a model matrix using the formula stored within
-the \code{fit_linear} object (via \code{object$formula}). This ensures that factor
-encoding and interaction terms are handled consistently with how the
-model was originally fitted.
-
-If \code{newdata} is provided, its structure must match the original training
-data used in \code{fit_linear()}.
-
-If \code{newdata} is omitted, the function simply returns the model’s
-in-sample fitted values, stored in \code{object$fitted}.
+This function constructs a new model matrix using the same predictors as in
+the original fit and multiplies it by the estimated coefficient vector.
+The intercept (if present) is automatically handled by the model matrix.
 }
 \examples{
 model <- fit_linear(mpg ~ wt + hp + disp, data = mtcars)
-preds_in <- predict_linear(model)
-preds_in
-
-new_cars <- data.frame(wt = c(2.5, 3.0, 3.5),
-                       hp = c(120, 150, 180),
-                       disp = c(200, 250, 300))
-preds_out <- predict_linear(model, newdata = new_cars)
-preds_out
-
+predict_linear(model, newdata = mtcars[1:5, ])
 }

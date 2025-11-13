@@ -24,7 +24,7 @@
 #' containing missing values (`NA`). It then fits the model using direct matrix algebra
 #' for clarity and efficiency. Results are equivalent to base R's `lm()`.
 #'
-#' @importFrom stats model.frame model.matrix model.response na.omit pf pt
+#' @importFrom stats model.frame model.matrix model.response na.omit pf pt terms
 #' @examples
 #' model <- fit_linear(mpg ~ wt + hp + disp, data = mtcars)
 #' model$coefficients
