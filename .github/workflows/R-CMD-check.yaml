@@ -31,8 +31,7 @@ jobs:
 
       # 5. Install package dependencies listed in DESCRIPTION
       - name: Install package dependencies from DESCRIPTION
-        run: Rscript -e "devtools::install_deps(dependencies = TRUE)"
-        shell: Rscript {0}
+        run: Rscript -e 'devtools::install_deps(dependencies = TRUE)'
 
       # 6. Build package
       - name: Build package
