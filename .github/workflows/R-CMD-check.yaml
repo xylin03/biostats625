@@ -21,7 +21,8 @@ jobs:
       run: sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev
 
     - name: Install package dependencies
-      run: R -e 'install.packages(c("devtools", "remotes", "roxygen2", "testthat", "bench", "covr"))'
+      run: 
+        R -e 'install.packages(c("devtools", "remotes", "roxygen2", "testthat", "bench", "covr"), repos="https://cloud.r-project.org")'
 
     - name: Install package
       run: Rscript -e "devtools::install_deps(dependencies = TRUE)"
@@ -37,7 +38,5 @@ jobs:
       run: Rscript -e "devtools::test()"
 
     - name: Generate coverage report and upload to Codecov
-      env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}  # optional if public repo
       run: |
         Rscript -e "cov <- covr::package_coverage(path = '.', type = 'tests'); covr::codecov(coverage = cov)"
