@@ -1,0 +1,44 @@
+name: R-CMD-check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  R-CMD-check:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up R
+      uses: r-lib/actions/setup-r@v2
+
+    - name: Install system dependencies
+      run: sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev
+
+    - name: Install package dependencies
+      run: |
+        install.packages(c("devtools", "remotes", "roxygen2", "testthat", "bench", "covr"))
+
+    - name: Install package
+      run: Rscript -e "devtools::install_deps(dependencies = TRUE)"
+      shell: Rscript {0}
+
+    - name: Build package and check
+      run: R CMD build .
+    
+    - name: Run R CMD check
+      run: R CMD check *tar.gz --no-manual --as-cran
+
+    - name: Run tests
+      run: Rscript -e "devtools::test()"
+
+    - name: Generate coverage report and upload to Codecov
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}  # optional if public repo
+      run: |
+        Rscript -e "cov <- covr::package_coverage(path = '.', type = 'tests'); covr::codecov(coverage = cov)"
