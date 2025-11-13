@@ -11,32 +11,42 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      # 1. Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Set up R
-      uses: r-lib/actions/setup-r@v2
+      # 2. Set up R
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
 
-    - name: Install system dependencies
-      run: sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev
+      # 3. Install system dependencies
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev
 
-    - name: Install package dependencies
-      run: 
-        R -e 'install.packages(c("devtools", "remotes", "roxygen2", "testthat", "bench", "covr"), repos="https://cloud.r-project.org")'
+      # 4. Install R package dependencies
+      - name: Install R package dependencies
+        run: |
+          R -e 'install.packages(c("devtools","remotes","roxygen2","testthat","bench","covr"), 
+                 repos="https://cloud.r-project.org")'
 
-    - name: Install package
-      run: Rscript -e "devtools::install_deps(dependencies = TRUE)"
-      shell: Rscript {0}
+      # 5. Install package dependencies listed in DESCRIPTION
+      - name: Install package dependencies from DESCRIPTION
+        run: Rscript -e "devtools::install_deps(dependencies = TRUE)"
+        shell: Rscript {0}
 
-    - name: Build package and check
-      run: R CMD build .
-    
-    - name: Run R CMD check
-      run: R CMD check *tar.gz --no-manual --as-cran
+      # 6. Build package
+      - name: Build package
+        run: R CMD build .
 
-    - name: Run tests
-      run: Rscript -e "devtools::test()"
+      # 7. Run R CMD check (without manual, as CRAN check)
+      - name: Run R CMD check
+        run: R CMD check *tar.gz --no-manual --as-cran
 
-    - name: Generate coverage report and upload to Codecov
-      run: |
-        Rscript -e "cov <- covr::package_coverage(path = '.', type = 'tests'); covr::codecov(coverage = cov)"
+      # 8. Run tests with testthat
+      - name: Run tests
+        run: Rscript -e "devtools::test()"
+
+      # 9. Generate code coverage and upload to Codecov
+      - name: Generate coverage report and upload to Codecov
+        run: |
+          Rscript -e "cov <- covr::package_coverage(path = '.', type = 'tests'); covr::codecov(coverage = cov)"
