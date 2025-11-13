@@ -1,13 +1,21 @@
-# biostats625
+biostats625
+================
 
 ## Overview
 
-biostats625 provides a set of tools for performing ordinary least squares (OLS) linear regression in a simple and transparent way. Currently, it includes two main functions:
+biostats625 provides a set of tools for performing ordinary least
+squares (OLS) linear regression in a simple and transparent way.
+Currently, it includes two main functions:
 
--   `fit_linear()` Fits a linear regression model after removing missing values. Returns coefficients, R-squared, adjusted R-squared, F-statistic, p-values, residuals, and fitted values.
--   `linreg_predict()` Predicts responses for new data using a model fitted by fit_linear().
+- `fit_linear()` Fits a linear regression model after removing missing
+  values. Returns coefficients, R-squared, adjusted R-squared,
+  F-statistic, p-values, residuals, and fitted values.
+- `linreg_predict()` Predicts responses for new data using a model
+  fitted by fit_linear().
 
-These functions are designed to reproduce the behavior of base R’s `lm()` and `predict.lm()` while being simple enough for educational use. You can learn more about them in `linreg-vignette`.
+These functions are designed to reproduce the behavior of base R’s
+`lm()` and `predict.lm()` while being simple enough for educational use.
+You can learn more about them in `vignette("linreg-vignette")`.
 
 ## Installation
 

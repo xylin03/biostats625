@@ -1,19 +1,212 @@
 ---
 title: "linreg-vignette"
 output: rmarkdown::html_vignette
+description: >
+  Start here if this is your first time using biostats625. You'll learn the basic
+  structure of constructing linear regression model based on example data, `|>`,
+  which allows you to solve real world problems.
 vignette: >
   %\VignetteIndexEntry{linreg-vignette}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
+```{r setup, include=FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE
 )
 ```
 
-```{r setup}
-library(biostats625)
+## Introduction
+
+This vignette demonstrates how to use `fit_linear()` to fit ordinary least squares (OLS) models and `predict_linear()` to predict new observations. We compare results to base R's `lm()` for correctness and benchmark runtime with `bench::mark()` for simple performance checks.
+
+## Data: mtcars
+
+To explore the basic usage of biostats625, we'll use the dataset `mtcars`. This dataset contains `r nrow(mtcars)` characters and comes from the built-in dataset of R.
+
+```{r}
+dim(mtcars)
+mtcars
 ```
+
+Using `mtcars` dataset for testing or examples for this package is a practical choice as no installation or extra packages required. The variables (e.g., mpg, wt, hp, disp) are continuous and meaningful, which make it ideal for linear regression. But you can always use 'biostats625` on your own dataset as we also handled missing value case, categorical variables, and interaction terms automatically, allowing it works for wide range of datasets.
+
+## Construct linear regression model with `fit_linear()` 
+
+`fit_linear()` fits a linear regression model after removing missing values based on the formula given. It returns a full structured list, containing coefficients, R-squared, adjusted R-squared, F-statistic, p-values, residuals, and fitted values.
+
+For example, we can fit a linear model where mpg ~ wt + hp + disp based on `mtcars`.
+
+```{r}
+library(biostats625)
+data(mtcars)
+
+model <- fit_linear(mpg ~ wt + hp + disp, data = mtcars)
+
+model$coefficients
+model$r.squared
+model$f.statistic
+model$f.p.value
+```
+
+## Make linera model prediction with`linreg_predict()`
+
+`linreg_predict()` Predicts responses for new data using a model fitted by `fit_linear()`. It allows you to make several predictions at the same time, returing a vector containg all the predicted values. If no new data provided, it will predict on training data and return the in-sample prediction.
+
+For example, we can make prediction on first five rows of `mtcars`.
+
+```{r}
+newdata <- mtcars[1:5, c("wt", "hp", "disp")]
+preds <- predict_linear(model, newdata)
+preds
+```
+
+## Correctness check vs base lm()
+
+We verify that fitted coefficients and predictions match base R's `lm()`.
+
+First check for `fit_linear()` with base covariates
+
+```{r}
+# Base lm()
+lm_model <- lm(mpg ~ wt + hp + disp, data = mtcars)
+
+# Compare coefficients
+all.equal(
+  as.numeric(as.matrix(model$coefficients)),
+  as.numeric(summary(lm_model)$coefficients)
+)
+
+# Compare R-squared
+all.equal(
+  model$r.squared,
+  summary(lm_model)$r.squared
+)
+
+# Compare F-statistic
+all.equal(
+  as.numeric(model$f.statistic),
+  as.numeric(summary(lm_model)$fstatistic[1])
+)
+
+# Compare F p-value
+f_base <- summary(lm_model)$fstatistic[1]
+df1 <- summary(lm_model)$fstatistic[2]
+df2 <- summary(lm_model)$fstatistic[3]
+f_p_base <- pf(f_base, df1, df2, lower.tail = FALSE)
+
+all.equal(
+  unname(as.numeric(model$f.p.value)),
+  unname(f_p_base)
+)
+
+```
+
+`fit_linear()` also works with and interaction terms
+
+```{r}
+int_lm_model <- lm(mpg ~ wt + hp + disp + wt*hp, data = mtcars)
+int_model <- fit_linear(mpg ~ wt + hp + disp + wt*hp, data = mtcars)
+
+# Compare coefficients
+all.equal(
+  as.numeric(as.matrix(int_model$coefficients)),
+  as.numeric(summary(int_lm_model)$coefficients)
+)
+
+# Compare R-squared
+all.equal(
+  int_model$r.squared,
+  summary(int_lm_model)$r.squared
+)
+
+# Compare F-statistic
+all.equal(
+  as.numeric(int_model$f.statistic),
+  as.numeric(summary(int_lm_model)$fstatistic[1])
+)
+
+# Compare F p-value
+int_f_base <- summary(int_lm_model)$fstatistic[1]
+int_df1 <- summary(int_lm_model)$fstatistic[2]
+int_df2 <- summary(int_lm_model)$fstatistic[3]
+int_f_p_base <- pf(f_base, df1, df2, lower.tail = FALSE)
+
+all.equal(
+  unname(as.numeric(int_model$f.p.value)),
+  unname(int_f_p_base)
+)
+```
+
+Now check for `predict_linear()`
+
+Comparing for whole dataset should give same answer
+```{r}
+pred_fitpkg <- predict_linear(model, mtcars)
+pred_lm <- predict(lm_model, mtcars)
+all.equal(unname(pred_fitpkg), unname(pred_lm))
+```
+
+`predict_linear()` returns fitted values when newdata = NULL
+
+```{r}
+preds <- predict_linear(model)
+all.equal(preds, model$fitted.values)
+```
+
+`predict_linear()` works with categorical predictors
+
+```{r}
+# Made categorival predictors
+df <- mtcars
+df$cyl <- factor(df$cyl)
+
+cat_fit <- fit_linear(mpg ~ wt + cyl, data = df)
+cat_lm_model <- lm(mpg ~ wt + cyl, data = df)
+
+preds <- predict_linear(cat_fit, df)
+pred_lm <- predict(cat_lm_model, df)
+
+all.equal(unname(preds), unname(pred_lm))
+```
+
+`predict_linear()` works correctly with a newly imported dataset
+
+```{r}
+new_df <- data.frame(
+  wt = 3.2,
+  hp = 90,
+  disp = 257.3
+  )
+
+preds <- predict_linear(model, new_df)
+pred_lm <- predict(lm_model, new_df)
+
+all.equal(unname(preds), unname(pred_lm))
+```
+
+## Speed comparison via benchmark
+
+This section uses `bench::mark()` to compare runtime for fitting.
+
+```{r}
+# Load required package
+library(bench)
+
+# Benchmark both functions
+bench::mark(
+  custom_fit = fit_linear(mpg ~ wt + hp + disp, data = mtcars),
+  base_lm = lm(mpg ~ wt + hp + disp, data = mtcars),
+  iterations = 100,
+  check = FALSE  
+)
+
+```
+Benchmarking (100 iterations) shows that `fit_linear()` runs in approximately 0.7 ms per fit, compared to 0.26 ms for R’s built-in `lm()`.
+
+While `fit_linear()` is slower, this difference reflects that `lm()` is implemented in optimized C code, whereas `fit_linear()` uses base R matrix operations for transparency. The results confirm that `fit_linear()` produces equivalent outputs to `lm()` while maintaining reasonable computational efficiency for moderate data sizes.
