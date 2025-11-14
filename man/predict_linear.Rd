@@ -22,9 +22,9 @@ regression model created by \code{fit_linear()}. It uses the model coefficients
 and the provided new data to compute predicted Y values.
 }
 \details{
-This function constructs a new model matrix using the same predictors as in
-the original fit and multiplies it by the estimated coefficient vector.
-The intercept (if present) is automatically handled by the model matrix.
+This function constructs a vector that contain all the predictions made by by-hand calculation
+based on the fitted linear regression model created by \code{fit_linear()}. It allows you to make several
+predictions at the same time, which is more efficient than the original R function \code{predict()}.
 }
 \examples{
 model <- fit_linear(mpg ~ wt + hp + disp, data = mtcars)

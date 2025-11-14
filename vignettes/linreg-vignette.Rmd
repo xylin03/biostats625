@@ -34,7 +34,7 @@ dim(mtcars)
 mtcars
 ```
 
-Using `mtcars` dataset for testing or examples for this package is a practical choice as no installation or extra packages required. The variables (e.g., mpg, wt, hp, disp) are continuous and meaningful, which make it ideal for linear regression. But you can always use 'biostats625` on your own dataset as we also handled missing value case, categorical variables, and interaction terms automatically, allowing it works for wide range of datasets.
+Using `mtcars` dataset for testing or examples for this package is a practical choice as no installation or extra packages are required. The variables (e.g., mpg, wt, hp, disp) are continuous and meaningful, which make it ideal for linear regression. But you can always use 'biostats625` on your own dataset as we also handled missing value case, categorical variables, and interaction terms automatically, allowing it works for wide range of datasets.
 
 ## Construct linear regression model with `fit_linear()` 
 
@@ -54,9 +54,9 @@ model$f.statistic
 model$f.p.value
 ```
 
-## Make linera model prediction with`linreg_predict()`
+## Make linear model prediction with`linreg_predict()`
 
-`linreg_predict()` Predicts responses for new data using a model fitted by `fit_linear()`. It allows you to make several predictions at the same time, returing a vector containg all the predicted values. If no new data provided, it will predict on training data and return the in-sample prediction.
+`linreg_predict()` Predicts responses for new data using a model fitted by `fit_linear()`. It allows you to make several predictions at the same time, returning a vector containing all the predicted values. If no new data provided, it will predict on training data and return the in-sample prediction.
 
 For example, we can make prediction on first five rows of `mtcars`.
 
@@ -192,7 +192,7 @@ all.equal(unname(preds), unname(pred_lm))
 
 ## Speed comparison via benchmark
 
-This section uses `bench::mark()` to compare runtime for fitting.
+This section uses `bench::mark()` to compare runtime for `fit_linear()` and `lm()`.
 
 ```{r}
 # Load required package
@@ -209,4 +209,41 @@ bench::mark(
 ```
 Benchmarking (100 iterations) shows that `fit_linear()` runs in approximately 0.7 ms per fit, compared to 0.26 ms for R’s built-in `lm()`.
 
-While `fit_linear()` is slower, this difference reflects that `lm()` is implemented in optimized C code, whereas `fit_linear()` uses base R matrix operations for transparency. The results confirm that `fit_linear()` produces equivalent outputs to `lm()` while maintaining reasonable computational efficiency for moderate data sizes.
+While `fit_linear()` is slower, this difference mainly because that `lm()` is implemented in C code, whereas `fit_linear()` uses base R matrix operations for transparency, sacrificing the running speed. The results confirm that `fit_linear()` produces equivalent outputs to `lm()` while maitaining speed in a reasonable range.
+
+The following section uses `bench::mark()` to compare runtime for `predict_linear()` and `predict()`.
+
+```{r}
+set.seed(32)
+
+# Fit models
+model    <- fit_linear(mpg ~ wt + hp + disp, data = mtcars)
+lm_model <- lm(mpg ~ wt + hp + disp, data = mtcars)
+
+# Number of prediction data frames
+K <- 1000
+
+# Create many newdata data frames
+new_list <- lapply(1:K, function(i) {
+  data.frame(
+    wt   = runif(1, 2, 4),
+    hp   = runif(1, 80, 150),
+    disp = runif(1, 150, 350)
+  )
+})
+
+# Combine them into one big data frame for predict_linear()
+new_df_all <- do.call(rbind, new_list)
+
+bench::mark(
+  predict_linear = predict_linear(model, new_df_all),
+
+  predict_lm_loop = sapply(new_list, function(dfall) {
+    unname(predict(lm_model, dfall))
+  }),
+  iterations = 20,
+  check = FALSE
+)
+```
+
+When making a large number of individual predictions, `predict_linear()` gives us a surprisingly well performance. Because `predict()` must be called once per new data frame, it runs as a for loop with the number of prediction calls. In contrast, `predict_linear()` converts all inputs into a single matrix and uses one matrix multiplication to produce all predictions at once. In our benchmark, `predict_linear()` completed in a median of 240 µs (1977 iterations/sec), whereas repeated calls to `predict()` required 143 ms (7 iterations/sec). This demonstrates that making predictions through matrix algebra yields a speedup of more than 280×, making `predict_linear()` significantly more efficient when many predictions are needed.

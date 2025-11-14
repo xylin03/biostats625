@@ -12,9 +12,9 @@
 #' @return A numeric vector of predicted values.
 #'
 #' @details
-#' This function constructs a new model matrix using the same predictors as in
-#' the original fit and multiplies it by the estimated coefficient vector.
-#' The intercept (if present) is automatically handled by the model matrix.
+#' This function constructs a vector that contain all the predictions made by by-hand calculation
+#' based on the fitted linear regression model created by `fit_linear()`. It allows you to make several
+#' predictions at the same time, which is more efficient than the original R function `predict()`.
 #'
 #' @importFrom stats model.matrix terms
 #' @examples
@@ -39,11 +39,6 @@ predict_linear <- function(fit, newdata = NULL) {
   if (!is.data.frame(newdata)) {
     stop("newdata must be a data frame.")
   }
-
-  # Rebuild model matrix for new data
-  # We reconstruct the formula from coefficient names if possible
-  # Identify the intercept term
-  has_intercept <- "(Intercept)" %in% names(beta)
 
   # Build model matrix for new data
   X_new <- model.matrix(~ ., data = newdata)
