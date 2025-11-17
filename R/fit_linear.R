@@ -1,11 +1,10 @@
 #' @title Fit a complete linear regression model
 #' @description
-#' The `fit_linear()` function removes all rows with missing values from the dataset
+#' The `fit_linear()` function removes all rows with missing values from the data frame
 #' and fits a linear regression model using the specified formula.
 #' It returns a list containing the fitted model's coefficients and key summary
-#' statistics such as R-squared, adjusted R-squared, F-statistic, p-value,
-#' and the coefficient table. The function also reports the number of rows removed
-#' due to missing values.
+#' statistics such as R-squared, adjusted R-squared, F-statistic, p-value. The function also reports
+#' the number of rows removed due to missing values and the number of rows used for fitting.
 #'
 #' @param formula A model formula (e.g., `Y ~ X1 + X2`).
 #' @param data A data frame containing the variables in the model.

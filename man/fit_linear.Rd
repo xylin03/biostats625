@@ -22,12 +22,11 @@ A list containing:
 \item{n_used}{Number of rows used for fitting.}
 }
 \description{
-The \code{fit_linear()} function removes all rows with missing values from the dataset
+The \code{fit_linear()} function removes all rows with missing values from the data frame
 and fits a linear regression model using the specified formula.
 It returns a list containing the fitted model's coefficients and key summary
-statistics such as R-squared, adjusted R-squared, F-statistic, p-value,
-and the coefficient table. The function also reports the number of rows removed
-due to missing values.
+statistics such as R-squared, adjusted R-squared, F-statistic, p-value. The function also reports
+the number of rows removed due to missing values and the number of rows used for fitting.
 }
 \details{
 This function performs a complete-case analysis by removing all observations

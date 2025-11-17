@@ -19,12 +19,14 @@ A numeric vector of predicted values.
 \description{
 The \code{predict_linear()} function generates predictions from a fitted linear
 regression model created by \code{fit_linear()}. It uses the model coefficients
-and the provided new data to compute predicted Y values.
+and the provided new data (if provided) to compute the predicted Y values.
 }
 \details{
 This function constructs a vector that contain all the predictions made by by-hand calculation
 based on the fitted linear regression model created by \code{fit_linear()}. It allows you to make several
 predictions at the same time, which is more efficient than the original R function \code{predict()}.
+Note \code{newdata} must contain all the predictor variables. If it contains extra variables, the function
+will drop the unnecessary columns and proceed.
 }
 \examples{
 model <- fit_linear(mpg ~ wt + hp + disp, data = mtcars)

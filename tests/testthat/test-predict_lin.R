@@ -63,14 +63,23 @@ test_that("predict_linear() works with categorical predictors", {
   expect_true(all(is.finite(preds)))
 })
 
-test_that("predict_linear() aligns columns correctly even if newdata has extra columns", {
+test_that("predict_linear() handles extra columns correctly", {
   fit <- fit_linear(mpg ~ wt + hp, data = mtcars)
 
+  # Add an irrelevant, extra column
   newdata <- mtcars
   newdata$extra <- rnorm(nrow(mtcars))
 
+  # Should still produce one prediction per row
   preds <- predict_linear(fit, newdata)
+
   expect_length(preds, nrow(newdata))
+
+  # Compare against lm() to ensure correctness
+  lm_fit <- lm(mpg ~ wt + hp, data = mtcars)
+  preds_lm <- predict(lm_fit, newdata)
+
+  expect_equal(unname(preds), unname(preds_lm))
 })
 
 test_that("predict_linear() works correctly with a newly imported dataset", {

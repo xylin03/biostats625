@@ -162,7 +162,7 @@ all.equal(preds, model$fitted.values)
 `predict_linear()` works with categorical predictors
 
 ```{r}
-# Made categorival predictors
+# Made categorical predictors
 df <- mtcars
 df$cyl <- factor(df$cyl)
 

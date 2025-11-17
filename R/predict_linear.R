@@ -2,12 +2,12 @@
 #' @description
 #' The `predict_linear()` function generates predictions from a fitted linear
 #' regression model created by `fit_linear()`. It uses the model coefficients
-#' and the provided new data to compute predicted Y values.
+#' and the provided new data (if provided) to compute the predicted Y values.
 #'
 #' @param fit A fitted model object returned by `fit_linear()`.
 #' @param newdata A data frame containing the same predictor variables as used in
-#'   the fitted model. If `newdata` is `NULL`, predictions for the training data
-#'   (used in fitting) will be returned.
+#' the fitted model. If `newdata` is `NULL`, predictions for the training data
+#' (used in fitting) will be returned.
 #'
 #' @return A numeric vector of predicted values.
 #'
@@ -15,6 +15,8 @@
 #' This function constructs a vector that contain all the predictions made by by-hand calculation
 #' based on the fitted linear regression model created by `fit_linear()`. It allows you to make several
 #' predictions at the same time, which is more efficient than the original R function `predict()`.
+#' Note `newdata` must contain all the predictor variables. If it contains extra variables, the function
+#' will drop the unnecessary columns and proceed.
 #'
 #' @importFrom stats model.matrix terms
 #' @examples
@@ -47,8 +49,16 @@ predict_linear <- function(fit, newdata = NULL) {
   missing_vars <- setdiff(names(beta), colnames(X_new))
   extra_vars <- setdiff(colnames(X_new), names(beta))
 
+  # Stop if there are missing values
   if (length(missing_vars) > 0) {
     stop("Missing variables in newdata: ", paste(missing_vars, collapse = ", "))
+  }
+
+  # Drop the extra values if possible
+  if (length(extra_vars) > 0) {
+    message("Extra variables in newdata ignored: ", paste(extra_vars, collapse = ", "))
+
+    X_new <- X_new[, names(beta), drop = FALSE]
   }
 
   # Align columns for multiplication
